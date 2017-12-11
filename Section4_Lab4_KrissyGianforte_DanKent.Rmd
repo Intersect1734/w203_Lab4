@@ -1,0 +1,57 @@
+---
+title: "Lab 4: INFORMATIVE TITLE"
+subtitle: "w203: Statistics for Data Science, Section 2"
+author: "Krissy Gianforte & Dan Kent"
+date: "18 December 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+library(car)
+library(sandwich)
+library(stargazer)
+library(lmtest)
+```
+
+# Introduction
+
+# Initial Exploratory Analysis
+```{r}
+setwd("C:\\Users\\Krissy\\Dropbox\\W203 - Statistics\\Lab 4")
+data <- read.csv("crime_v2_updated.csv", header = TRUE)
+
+summary(data$crime)
+```  
+
+# Model Building
+## Model 1: 
+#### Specification
+
+#### Strength
+
+## Model 2:  
+#### Specification
+
+#### Strength
+
+## Model 3:  
+#### Specification
+
+#### Strength
+
+## Summary of Models
+
+# In-depth Analysis of Model 1: CLM Assumptions
+
+# Significance
+## Statistical Significance
+
+## Practical Significance
+
+## Causality & Omitted Variables
+
+# Conclusion
