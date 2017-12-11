@@ -19,6 +19,9 @@ library(lmtest)
 
 # Introduction
 
+G&K Associates have been retained by the [REDACTED] campaign to provide a statistical modeling and analysis to understand the determinants of crime and generate policy suggestions that are applicable to local government.  We, the principal investigators (K. Gianforte & D. Kent) utilized a pre-existing dataset of crime statistics for a selection of counties and are proceeding in this exercise from a causal perspective.  
+
+
 # Initial Exploratory Analysis
 ```{r}
 setwd("C:\\Users\\Krissy\\Dropbox\\W203 - Statistics\\Lab 4")
