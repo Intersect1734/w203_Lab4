@@ -26,11 +26,47 @@ G&K Associates have been retained by the [REDACTED] campaign to provide a statis
 ```{r}
 setwd("C:\\Users\\Krissy\\Dropbox\\W203 - Statistics\\Lab 4")
 data <- read.csv("crime_v2_updated.csv", header = TRUE)
-
-summary(data$crime)
-hist(data$crime)
-
+data <- data[2:26]
 ```  
+
+We begin our Exploratory Data Analysis by first inspecting all the variables.  We identify 25 different variables and confirm that these are the variables provided to us in the supplemental codebook.
+
+```{r}
+summary(data)
+```
+From our high-level summary statistics and descriptions from the codebook, we observe that some variables are categorial-ordinal (county, year), coded (west, central, urban), proportions or probabilities (probarr, probconv, probsen, pctmin, mix, ymale), averages (crime, avgsen, wagecon, wagetuc, wagetrd, wagefir, wageser, wagemfg, wagefed, wagesta, wageloc), and some are rates (crime, police, density, tax).  
+
+We first identify our response/dependent variable, crime, the quantity of "crimes committed per person."
+
+We can initally facially exclude a series of variables based upon the following conditions:
+
+year - The year variable can be ignored in our analysis as all the observations have the same value, 88, which the researchers understand as 1988 - perhaps the year of the data.  As all of the values are the same across all observations, we ignore this variable.
+
+probarr, probconv, probsen - The variables involving probability will be excluded from analysis as they ______
+
+mix - the mix variable, described in the codebook as "ratio of face to face/all other crimes" will be excluded as we believe this data to be associated with the response/dependent variable, crime, as opposed to a predictor/independent variable.
+
+county - the variable county is indentified as the county identifer and we identify that each observation is unique.
+
+```{r}
+length(data$county) - length(unique(data$county))
+```
+Beyond identifying that each observation is unique, we may then dispense with this variable, as the ordinal number associated with each observation does not provide any useful information about the associated data.
+
+From this first pairing down of variables, we are left with 19 variables of interest.  
+
+```{r}
+kept <- c(3,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,25)
+
+data <- data[kept]
+```
+
+
+From these variables, we have grouped them into 
+
+
+
+
 
 # Model Building
 ## Model 1: 
