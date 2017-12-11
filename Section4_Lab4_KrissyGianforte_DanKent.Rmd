@@ -62,10 +62,31 @@ data <- data[kept]
 ```
 
 
-From these variables, we have grouped them into 
+From these variables, we have grouped them into categories based upon their type of effect in our models: Authority, Demographics, Geography, and Economics.  Moving forwards, we will discuss variables based upon these groupings.
+
+##Authority
+Authority is ______.
+
+We have identified is the police variable, described as "police per capita" from the code book.
 
 
+##Demographics
+We are interpereting demographics as _____.
 
+There are two variables in the demographics category, ymale and pctmin, or proportion of county males between ages 15 and 24, and proportion that is minority or nonwhite, respectively.  
+
+##Geography
+Geography in our model represents _____.
+
+There are a number of variables we have identified that relate to geography, including density (people per sq. mile), west and central, binary variables illustrating whether the observed county is in the west or central portion of the state, and urban, another binary variable representing if the county is in the standard metropolitan statistical area.
+
+## Economics
+Finally, economics is in our model as _____.
+
+Included in this group of variables include all the weekly wage variables (wagecon (Construction), wagetuc (Transportation, Utilities, Communciations), wagetrd, (wholesale, retail trade), wagefir (finance, insurance and real estate), wagemfg (manufacturing), wagefed (Federal Employees), wagesta (state employees), and wageloc (local government employees)).  Finally we have also categorized tax, or the tax revenue per capita as an economics variable.
+
+
+WARNING: Because we don't know the population of the counties or denominator of the average wages, the "per capita/averages" could be signficantly skewed or not reliably comparable across all counties.  We nevertheless proceed with caution.  
 
 
 # Model Building
