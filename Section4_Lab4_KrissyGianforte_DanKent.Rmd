@@ -25,33 +25,38 @@ setwd("C:\\Users\\Krissy\\Dropbox\\W203 - Statistics\\Lab 4")
 data <- read.csv("crime_v2_updated.csv", header = TRUE)
 
 summary(data$crime)
+hist(data$crime)
+
 ```  
 
 # Model Building
 ## Model 1: 
 #### Specification
 
-#### Strength
+#### Assumptions
 
 ## Model 2:  
 #### Specification
 
-#### Strength
+#### Assumptions
 
 ## Model 3:  
 #### Specification
 
-#### Strength
+#### Assumptions
 
 ## Summary of Models
 
-# In-depth Analysis of Model 1: CLM Assumptions
+# Summary of models
+## Regression Table
 
-# Significance
-## Statistical Significance
+## Significance
+### Statistical Significance
 
-## Practical Significance
+### Practical Significance
 
-## Causality & Omitted Variables
+
+
+# Causality & Omitted Variables
 
 # Conclusion
