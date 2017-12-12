@@ -69,22 +69,64 @@ Authority is ______.
 
 We have identified is the police variable, described as "police per capita" from the code book.
 
+```{r}
+police <- data$police
+summary(police)
+```
+We observe that our police per capita rate depicts that there is on average, across all observed counties, 1.7 police personnel per 1000 individuals and there is a significant positive skew to the distributrion.
+
+```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=3, fig.height=3,fig.show='hold',fig.align='center'}
+hist(police)
+```
+
 
 ##Demographics
 We are interpereting demographics as _____.
 
 There are two variables in the demographics category, ymale and pctmin, or proportion of county males between ages 15 and 24, and proportion that is minority or nonwhite, respectively.  
 
+Our primary variable of analysis for Demographics will be ymale, as other studies have demonstrated that young males have, on average, a higher propensity to commit crimes.
+
+```{r}
+ymale <- data$ymale
+summary(ymale)
+```
+The ymale data depict an average of 8.4% young males per county.  We further observe a strong positive skew with one value reaching nearly 1 in 4 residents is classifed as a "young male."
+
+```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=3, fig.height=3,fig.show='hold',fig.align='center'}
+hist(ymale)
+```
+
+An additional variable that ilustrates demographics is that of pctmin, or the percentage of minorities in each county.  
+
+```{r}
+pctmin <- data$pctmin
+summary(pctmin)
+```
+We observe that there is a wide distribution of this variable, ranging from 1.2% to 64.3%  Of note is that this data format is not congruent with our previous ymale format, wheras this depicts integer-percents, as the other depicts decimal-percents.
+
+```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=3, fig.height=3,fig.show='hold',fig.align='center'}
+hist(pctmin)
+```
+From the histogram plot, we see a positively-skewed distribution.  
+
 ##Geography
 Geography in our model represents _____.
 
 There are a number of variables we have identified that relate to geography, including density (people per sq. mile), west and central, binary variables illustrating whether the observed county is in the west or central portion of the state, and urban, another binary variable representing if the county is in the standard metropolitan statistical area.
+
+Our two primary geography variables are density, and urban.
+
+Our secondary variables relate to the location of the county and is a combination of west and central variables.  
 
 ## Economics
 Finally, economics is in our model as _____.
 
 Included in this group of variables include all the weekly wage variables (wagecon (Construction), wagetuc (Transportation, Utilities, Communciations), wagetrd, (wholesale, retail trade), wagefir (finance, insurance and real estate), wagemfg (manufacturing), wagefed (Federal Employees), wagesta (state employees), and wageloc (local government employees)).  Finally we have also categorized tax, or the tax revenue per capita as an economics variable.
 
+Our primary economics variable is the 
+
+Our secondary economics variable is tax, or tax revenue per capita.  We have demoted this variable to our secondary analysis because of the limitations in understanding the parameters of this variable.  We are concerned that without further information, the tax variable might comingle differnet types of tax data, representative of not only personal taxes, but also taxes of businessess.  Consequently we observe this variable with a discerning and suspicious eye, and take it's contours and parameters with a grain of salt.  
 
 WARNING: Because we don't know the population of the counties or denominator of the average wages, the "per capita/averages" could be signficantly skewed or not reliably comparable across all counties.  We nevertheless proceed with caution.  
 
