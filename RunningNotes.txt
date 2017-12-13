@@ -1,0 +1,16 @@
+Running Questions
+
+
+
+From Krissy, 12/12/2017:
+
+- How do we suppress the Stargazer warning that prints at the beginning? I thought 'warning=FALSE' would work, but it doesnt. =( 
+- I'm nervous about saying "we proceed from a causal perspective" in the Intro. I rewrote it a bit with more emphasis on prediction. Then basically said "you can take action on it causally if you choose". We just spent so much time on that in class... I want to make sure we acknowledge our lack of control here.
+
+- I rewrote much of this to be more of a story. A little bit of that is from w201 sinking in ;) and a little is from office hours, when Tiffany was asking about a Research Question. She had a good point, and I think having a good proposal/question would make our writing flow better. To that end, I chose a Research Question centered around positive vs negative reinforcement. I'm TOTALLY open to changing that question. But having one at all really made the Model 1/2/3 scheme click for me, so that was nice.
+
+- With the more story-y structure, I think we can move a lot of the category discussion downward. Definitely keep the listing -- where you've explained which variables operationalize each category. But the true EDA stuff (looking at summaries, histograms, etc) can probs be moved into the modelling sections. In fact, the assignment says that "your EDA should be interspersed with, and support, your modeling decisions". I think it would read more smoothly as well. Thoughts? (I didn't move it yet)
+
+
+HELP ME
+I have no idea what transforms to use and when  =/  I just know that logs work for wages. Aiyaaa
