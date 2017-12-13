@@ -1,9 +1,11 @@
 ---
-title: "Lab 4: INFORMATIVE TITLE"
-subtitle: "w203: Statistics for Data Science, Section 2"
+title: 'Lab 4: INFORMATIVE TITLE'
 author: "Krissy Gianforte & Dan Kent"
 date: "18 December 2017"
-output: pdf_document
+output:
+  pdf_document: default
+  html_document: default
+subtitle: 'w203: Statistics for Data Science, Section 2'
 ---
 
 ```{r setup, include=FALSE}
@@ -19,50 +21,60 @@ library(lmtest)
 
 # Introduction
 
-G&K Associates have been retained by the [REDACTED] campaign to provide a statistical modeling and analysis to understand the determinants of crime and generate policy suggestions that are applicable to local government.  We, the principal investigators (K. Gianforte & D. Kent) utilized a pre-existing dataset of crime statistics for a selection of counties and are proceeding in this exercise from a causal perspective.  
+G&K Associates have been retained by the [REDACTED] campaign to provide statistical modeling and analysis to understand the determinants of crime and generate policy suggestions that are applicable to local government.  We, the principal investigators (K. Gianforte & D. Kent), utilized a pre-existing dataset of crime statistics for a selection of counties.  
 
+The campaign has been considering two different approaches to reducing crime. The first, perhaps more obvious option is to reinforce deterrents. An increased police presence and lengthened prison sentences would eventually make crime simply unprofitable. However, this sort of increased force takes a toll on public opinion. The second apporach, in contrast, would aim to decrease crime by facilitating better behaviors. Increased quality of life, prosperity, and happiness may keep people from reaching the desperation that fuels criminal acts.  
+
+This analysis explores each of the options (the "carrot" and the "stick").[^1] We model crime as a function of "carrot" and "stick" indicators, and reveal the effects they are likely to have on crime rate.  
+NOTE: Without the ability to set up a true experiment, we cannot isolate these factors to determine the nature and direction of any patterns. That is, relationships seen through this analysis are not necessarily casual, and policy changes may not result in the desired effect despite our models' predictions.
+
+[^1]: https://en.wikipedia.org/wiki/Carrot_and_stick   
 
 # Initial Exploratory Analysis
 ```{r}
 setwd("C:\\Users\\Krissy\\Dropbox\\W203 - Statistics\\Lab 4")
-data <- read.csv("crime_v2_updated.csv", header = TRUE)
-data <- data[2:26]
+full_data <- read.csv("crime_v2_updated.csv", header = TRUE)
+# Remove first column, since it is just an index. (The 'county' variable serves
+# this purpose better, since every 'county' value is unique.)
+full_data <- full_data[2:26]
 ```  
 
-We begin our Exploratory Data Analysis by first inspecting all the variables.  We identify 25 different variables and confirm that these are the variables provided to us in the supplemental codebook.
+We begin our Exploratory Data Analysis by inspecting all of the variables. We identify 25 different variables and confirm that these are the variables provided to us in the supplemental codebook.
 
 ```{r}
-summary(data)
+# summary(full_data)
+# CAN WE USE COLNAMES HERE INSTEAD? SUMMARY JUST OUTPUTS A LOT. BETTER TO USE THAT OUTPUT LOWER DOWN, WHEN WE ACTUALLY ARE INTERESTED IN AVERAGES AND SUCH?
+colnames(full_data)
 ```
-From our high-level summary statistics and descriptions from the codebook, we observe that some variables are categorial-ordinal (county, year), coded (west, central, urban), proportions or probabilities (probarr, probconv, probsen, pctmin, mix, ymale), averages (crime, avgsen, wagecon, wagetuc, wagetrd, wagefir, wageser, wagemfg, wagefed, wagesta, wageloc), and some are rates (crime, police, density, tax).  
+From our high-level summary statistics and descriptions from the codebook, we observe that some variables are categorial-ordinal (county, year), coded (west, central, urban), proportions or probabilities (probarr, probconv, probsen, pctmin, mix, ymale), averages (crime, avgsen, wagecon, wagetuc, wagetrd, wagefir, wageser, wagemfg, wagefed, wagesta, wageloc), and some are rates (crime, police, density, tax). However, all variables are represented as numeric data in the data frame; categorical and coded entries are represented as numeric 0's and 1's.  
 
-We first identify our response/dependent variable, crime, the quantity of "crimes committed per person."
+There are 90 unique counties represented in the data set, and each has values for all variables; no responses are marked NA. It is possible, though, that the data set contains other values that represent non-applicable entries. As we introduce each variable into our models, we will inspect the values more carefully and address any such coding.  
+```{r}
+length(unique(full_data$county)) # number of unique counties
+nrow(full_data) # number of data rows
+any(is.na(full_data)) # any NA values?
+```
 
-We can initally facially exclude a series of variables based upon the following conditions:
+The response/dependent variable of interest is *crime*: the quantity of "crimes committed per person." All values of this variable fall between 0 and 0.1, which aligns with our expectations; there do not appear to be any special coding conventions.  
+```{r}
+summary(full_data$crime)
+```
 
-year - The year variable can be ignored in our analysis as all the observations have the same value, 88, which the researchers understand as 1988 - perhaps the year of the data.  As all of the values are the same across all observations, we ignore this variable.
+We exclude a few of the remaining 24 variables from our analysis, as they do not provide meaningful and reliabile information:
 
-probarr, probconv, probsen - The variables involving probability will be excluded from analysis as they ______
+  * year - The year variable is ignored in our analysis as all the observations have the same value, 88, which the researchers understand as 1988 - perhaps the year of the data.  As all of the values are the same across all observations, we ignore this variable.
+  * probarr, probconv, probsen - The variables involving probability are calculations in and of themselves; the code book describes these quantities as 'probability' values. The quotation marks in the definitions indicate that these are hypothetical, calculated values rather than truly observed values. For the purposes of this investigation, we wish to use measured, raw data. Therefore, these probability variables will be excluded from analysis.  
+  * mix - the mix variable, described in the codebook as "ratio of face to face/all other crimes" will be excluded as we believe this data to be associated with the response/dependent variable, crime, as opposed to a predictor/independent variable.  
+  * county - The variable *county* is described as the "county identifer". This identification was used above to understand that each row of data represents a different county. Past that, though, this variable provides little value; the ordinal number associated with each observation does not provide any useful information about the associated data.  
 
-mix - the mix variable, described in the codebook as "ratio of face to face/all other crimes" will be excluded as we believe this data to be associated with the response/dependent variable, crime, as opposed to a predictor/independent variable.
-
-county - the variable county is indentified as the county identifer and we identify that each observation is unique.
+From this first pairing down of variables, we are left with the response variable *crime* and 19 independent variables.  
 
 ```{r}
-length(data$county) - length(unique(data$county))
-```
-Beyond identifying that each observation is unique, we may then dispense with this variable, as the ordinal number associated with each observation does not provide any useful information about the associated data.
-
-From this first pairing down of variables, we are left with 19 variables of interest.  
-
-```{r}
-kept <- c(3,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,25)
-
-data <- data[kept]
+data <- subset(full_data, select= -c(year, probarr, probconv, probsen, mix, county))
+colnames(data)
 ```
 
-
-From these variables, we have grouped them into categories based upon their type of effect in our models: Authority, Demographics, Geography, and Economics.  Moving forwards, we will discuss variables based upon these groupings.
+We have grouped these variables into categories based upon their type of effect in our models: Authority, Demographics, Geography, and Economics.  Moving forward, we will discuss variables based upon these groupings.
 
 ##Authority
 Authority is ______.
@@ -131,21 +143,119 @@ Our secondary economics variable is tax, or tax revenue per capita.  We have dem
 WARNING: Because we don't know the population of the counties or denominator of the average wages, the "per capita/averages" could be signficantly skewed or not reliably comparable across all counties.  We nevertheless proceed with caution.  
 
 
-# Model Building
+# Model Building  
+This analysis presents three different models to describe how crime is affected by various factors. The first model is quite simple, and uses just two variables to operationalize positive ("carrot") and negative ("stick") control of crime. This model is an over-simplification, but such a simple picture often proves useful in presenting ideas to large groups of campaign supporters and investors.  
+The second model is a more accurate depiction of the complex ecosystem around crime. It incorporates related and entangled variables where relevant, and thereby improves on the predictive capabilities of the first model.  
+Finally, we present a third model with all related factors included. This model is provided largely as a baseline, and helps to demonstrate the usefulness of our second proposed model.    
+
 ## Model 1: 
-#### Specification
+#### Specification  
+Crime is modeled here as a function of only two variables: police presence (a deterrent) and average wages (to represent positive incentives). 
+
+Histograms of each of these variables allow us to identify skew and make any required transformations. NOTE: It is quite common to transform salary/wage variables using a logarithm. In anticipation of that, a histogram of *log(wage_avg)* is provided proactively here.  
+
+```{r}
+# Create the variable for average wage
+wagevars = c("wagefed", "wagesta", "wageloc", "wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg")
+data$wage_avg = apply(data[,wagevars], 1, mean)
+
+#Histogram of each variable in the model
+layout <- par(mfrow=c(2,2))
+
+hist(data$crime, main = "Histogram of Crime", xlab = "Crime rate (per capita)", breaks = seq(0, 0.10, 0.005))
+
+hist(data$police, main = "Histogram of Police Presence", xlab = "Police per capita", breaks = seq(0,0.015, 0.0005))
+
+hist(data$wage_avg, main = "Histogram of Average Wages", xlab = "Weekly wages", breaks = seq(250, 500, 25))
+
+# Create a log(wage) variable
+data$log_wage_avg <- log(data$wage_avg)
+hist(data$log_wage_avg, main = "Histogram of Average Wages, log transform", xlab = "log(Weekly wages)", breaks = seq(5.4, 6.5, 0.1))
+
+par(layout)
+
+```  
+
+The dependent variable of interest, *crime*, has a somewhat skewed distribution, with many counties on the lower end of the spectrum and a tail extending into higher rates. Still, the skew is not extreme, so we will proceed with the *crime* variable untransformed.  
+
+The *police* variable is approximately normally distributed, except for a single value near 0.010 (1 policeman for every 10 citizens). We will incorporate the variable into the model without a transformation, given its nearly-normal distribution.
+
+As expected, the histogram of *log(wage_avg)* appears more normal than the untransformed plot; a logarithm helps reduce the impact of high-earners. A log transform of pay also helps with intuitive interpretation of the model (an X% increase in wages is quite easy to understand). With both of those advantages, we select the *log(wage_avg)* variable for the model.  
+
+Our model takes the following form:  
+$$Crime = \beta_0 + \beta_1*Police + \beta_2*log(Avg Wages)$$  
+
+```{r}
+Model1 <- lm(crime ~ police + log_wage_avg, data = data)
+```
+
 
 #### Assumptions
 
 ## Model 2:  
-#### Specification
+#### Specification  
+This model adds a bit of complexity to the first, in order to better capture the full range of variables that affect crime. We incorporate interaction terms and covariates where they might affect the model. In particular, we include at least one variable from each category discussed above, in order to capture other factors in society and control for them:  
+
+  * Demographics: operationalized by the number of young males in the county, *ymale*  
+  * Geography: operationalized by population density, *density*  
+  * Economics: in addition to the incentive variable *wage_avg* captured in Model 1, the average wages of government and non-government employees, *wage_public* and *wage_private* respectively, are added to the model as separate terms, so that wage disparity effects can be captured. 
+  
+INTERACTION TERMS
+  
+Histograms of each of these variables allow us to identify skew and make any required transformations.   
+
+```{r}
+# Create the variables for public & private wages
+pubwages = c("wagefed", "wagesta", "wageloc")
+privwages = c("wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg")
+data$wage_public = apply(data[,pubwages], 1, mean)
+data$wage_private = apply(data[,privwages], 1, mean)
+
+#Histogram of each NEW variable
+layout <- par(mfrow=c(3,2))
+
+hist(data$ymale, main = "Histogram of Young Male Population", xlab = "Percentage of Young Males (15 to 24)", breaks = seq(0, 0.27, 0.01))
+
+hist(data$density, main = "Histogram of Density", xlab = "Density (people per sq mile)", breaks = seq(0,10,0.5))
+
+hist(data$wage_public, main = "Histogram of Public Wages", xlab = "Weekly wages", breaks = seq(250, 500, 25))
+
+hist(data$wage_private, main = "Histogram of Private Wages", xlab = "Weekly wages", breaks = seq(200, 600, 25))
+
+par(layout)
+
+```  
+
+The three independent variables, *police*, *ymale*, and *density*, all have nearly normal distributions with a few values sitting far down the right tail. *Density* in particular seems to have a cutoff value at zero; the distribution would perhaps appear more normal if it were allowed to extend leftward. Of course density cannot go below zero, so the cutoff is appropriate.  
+
+ARE THERE OTHER TRANSFORMS WE CAN DO? SQUARES? SOMETHING MORE CREATIVE THAN LOG?
+
+The distribution of public wages, *wage_public*, is HELLA NORMAL, so we will include it in the model as-is. For the sake of comparability, we will also include the *wage_private* variable as-is. This keeps both in terms of dollar change (as opposed to percentage changes).
+
+
+Our model takes the following form:  
+$$Crime = \beta_0 + \beta_1*Police + \beta_2*log(Avg Wages) + \beta_3*Ymale + \beta_4*Density + \beta_5*PublicWages + \beta_6*PrivateWages$$  
+
+```{r}
+Model2 <- lm(crime ~ police + log_wage_avg + ymale + density + wage_public + wage_private, data = data)
+
+```
+
+
+  
+  
+
 
 #### Assumptions
 
 ## Model 3:  
-#### Specification
+#### Specification  
+This model expands upon the operationalization of deterrents to crime by adding the *avgsen* variable. We do not add this variable with confidence, since we do not fully understand its derivation. (Does it represent sentence length averaged over convictions? Or over all citizens - even those with no crimes? Is it normalized for the severity of the crime, or are sentences served for murder and public intoxication weighted equally?)
 
 #### Assumptions
+
+
+
 
 ## Summary of Models
 
