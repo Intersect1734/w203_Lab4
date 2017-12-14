@@ -228,7 +228,7 @@ plot(Model1, 1)
 ```
 From our plot, we observe a spline curve that is fairly flat.  We notice some curvature towards the postiive side of the plot, but observe that this could be explained by the limited number of datapoints in this region.  We consequently will assume Zero Conditional Mean and continue with the analysis.
 
-Our next tested assumption is MLR.5, the assumption of homoskedacity.  From the above residuals versus fitted, we can observe that the band has a roughly uniform thickness, with the exception of three points in the lower right-hand corner of the plot.  We will proceed cautiously with further analysis of homoskedasticity.
+Our next tested assumption is MLR.5, the assumption of homoskedacity.  From the above residuals versus fitted, we can observe that the band has a roughly uniform thickness, with the exception of three points in the lower right-hand corner of the plot.  We will proceed cautiously with further analysis of homoskedasticity but also use robust standard errors (see infra.)
 
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 3)
@@ -336,7 +336,7 @@ Following the same assumption test protocol we conducted in the above section fo
 ```{r}
 summary(Model2)$r.squared 
 
-(tolerance2 <- 1-summary(Model1)$r.squared)
+(tolerance2 <- 1-summary(Model2)$r.squared)
 (VIF2 <- 1/tolerance2)
 
 bptest(Model2)
@@ -361,7 +361,7 @@ plot(Model2, 5)
 
 ```
 
-From our data outputs, we identify some heteroskedasticity, as we observed above.  In our QQ plot analysis, we note general conformity to the diagional line, with the exception of points 51, 84, and 25.  Moving further in our analysis, we again identify that points 51 and 84, while legitimate data, exert high leverage and influence.  We reckon that we are able to cautiously accept all assumptions for our classical linear multiple regression model.
+From our data outputs, we identify some heteroskedasticity, as we observed above and consequently will switch to robust standard errors (see infra).  In our QQ plot analysis, we note general conformity to the diagional line, with the exception of points 51, 84, and 25.  Moving further in our analysis, we again identify that points 51 and 84, while legitimate data, exert high leverage and influence.  We reckon that we are able to cautiously accept all assumptions for our classical linear multiple regression model.
 
 ## Model 3:  
 #### Specification  
@@ -377,7 +377,7 @@ par(mfrow=c(1,2))
 hist(data$avgsen, main = "Histogram of Average Sentence", xlab = "Average Sentence (days)")  
 ``` 
 
-We should consider transforming this variable, due to its skew.   
+We proceed in transforming this variable, due to its skew.   
 
 ```{r}
 #Histogram of average sentence, log transform
@@ -391,16 +391,40 @@ $$log(Crime) = \beta_0 + \beta_1*Police + \beta_2*Ymale + \beta_3*PctMinority + 
 
 ```{r}
 Model3 <- lm(log_crime ~ police + ymale + pctmin + density + wage_public + wage_private + urban + urban*ymale + log(avgsen), data = data)
-
-summary(Model3)
 ```
 
 #### Assumptions
 
+```{r}
+summary(Model3)$r.squared 
+
+(tolerance3 <- 1-summary(Model3)$r.squared)
+(VIF3 <- 1/tolerance3)
+
+bptest(Model3)
 
 
+#Diagnostic Plots
+par(mfrow=c(3,2))
 
-## Summary of Models
+# Residuals vs Fitted Values
+plot(Model3, 1)
+
+# Scale-Location
+plot(Model3, 3)
+
+# Histogram of residuals
+hist(Model3$residuals, main = "Histogram of Residuals")
+
+# Normal Q-Q
+plot(Model3, 2)
+
+# Residuals vs Leverage
+plot(Model3, 5)
+```
+
+From our data outputs from Model 3, we identify some heteroskedasticity, as we observed above in Models 1 and 2 and similarly switch to robust standard errors (see infra).  Our scale-location plot calls attention to points 51, 25, and potentially 84.  In our QQ plot analysis, we note general conformity to the diagional line, with the exception of points 51, 84, and 25, as observed in Model 2.  We identify that points 51 and 84, while legitimate data, exert high leverage and influence, as does point 23, a new finding for Model 3.  We cautiously accept all assumptions for our classical linear multiple regression model number 3.
+
 
 # Summary of models
 ## Regression Table
@@ -421,10 +445,10 @@ c(AIC(Model1), AIC(Model2), AIC(Model3))
 
 ```  
 
-NICE! MODEL2 HAS LOWEST AIC --- MOST PARSIMONIOUS BEST FIT =D
 
 ## Significance
 ### Statistical Significance  
+From an analysis of our three models, we observe an increase across the models in parsimony as illustrated by both our adjusted R2 and AIC.  
 
 
 ### Practical Significance  
