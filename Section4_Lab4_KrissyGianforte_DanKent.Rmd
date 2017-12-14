@@ -62,7 +62,7 @@ summary(full_data$crime)
 
 We exclude a few of the remaining 24 variables from our analysis, as they do not provide meaningful and reliabile information:
 
-  * year - The year variable is ignored in our analysis as all the observations have the same value, 88, which the researchers understand as 1988 - perhaps the year of the data.  As all of the values are the same across all observations, we ignore this variable.
+  * year - The year variable is ignored in our analysis as all the observations have the same value, 88, which the researchers understand as 1988 - perhaps the year of the data.  As all of the values are the same across all observations, we ignore this variable.  
   * probarr, probconv, probsen - The variables involving probability are calculations in and of themselves; the code book describes these quantities as 'probability' values. The quotation marks in the definitions indicate that these are hypothetical, calculated values rather than truly observed values. For the purposes of this investigation, we wish to use measured, raw data. Therefore, these probability variables will be excluded from analysis.  
   * mix - the mix variable, described in the codebook as "ratio of face to face/all other crimes" will be excluded as we believe this data to be associated with the response/dependent variable, crime, as opposed to a predictor/independent variable.  
   * county - The variable *county* is described as the "county identifer". This identification was used above to understand that each row of data represents a different county. Past that, though, this variable provides little value; the ordinal number associated with each observation does not provide any useful information about the associated data.  
@@ -171,7 +171,7 @@ hist(data$wage_avg, main = "Histogram of Average Wages", xlab = "Weekly wages", 
 
 # Create a log(wage) variable
 data$log_wage_avg <- log(data$wage_avg)
-hist(data$log_wage_avg, main = "Histogram of Average Wages, log transform", xlab = "log(Weekly wages)", breaks = seq(5.4, 6.5, 0.1))
+hist(data$log_wage_avg, main = "Histogram of Avg Wages, log transform", xlab = "log(Weekly wages)", breaks = seq(5.4, 6.5, 0.1))
 
 par(layout)
 
@@ -201,19 +201,17 @@ We are able to pass the first assumption, MLR.1 as we have developed our model i
 
 The veracity of the second assumption, MLR.2, i.e. random sampling, IID, is difficult to discern based upon the data and additional information we have at our disposal.  As we did not conduct the data collection and further have limited information about the variables, we proceed cautiously with the assumption that our model meets MLR.2.
 
-The third assumption, MLR.3, is the assumption of no perfect colinearity.  As we have multiple variables, we will look at the r^2 value, tolerance, and VIF.  
+The third assumption, MLR.3, is the assumption of no perfect colinearity.  As we have multiple variables, we will look at the R^2^ value, tolerance, and VIF.  
 ```{r}
 summary(Model1)$r.squared 
 ```
-Our r^2 value is not approaching 1 therefore there is no threat of multicolinearity evidence there.
+Our R^2^ value is not approaching 1 therefore there is no threat of multicolinearity evidence there.
 ```{r}
-tolerance1 <- 1-summary(Model1)$r.squared 
-tolerance1
+(tolerance1 <- 1-summary(Model1)$r.squared)
 ```
 Our tolerance value is also not below 0.1, which therefore does not indicate any serious multicolinearity.  We now calculate our VIF:
 ```{r}
-VIF1 <- 1/tolerance1
-VIF1
+(VIF1 <- 1/tolerance1)
 ```
 Finally, our VIF is not above four, yet alone 10, indicating that we do not have any issues of multicolinearity.
 
@@ -252,7 +250,7 @@ We observe some positive skew, but it is roughly normally distributed.
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 2)
 ```
-Our QQ test shows that hte majority of points falls on the diagonal line with some departure along the extremes.  
+Our QQ test shows that the majority of points falls on the diagonal line with some departure along the extremes.  
 
 ```{r}
 length(data$crime)
@@ -274,7 +272,7 @@ This model adds a bit of complexity to the first, in order to better capture the
 
   * Demographics: operationalized by the number of young males in the county, *ymale*  
   * Geography: operationalized by population density, *density*  
-  * Economics: in addition to the incentive variable *wage_avg* captured in Model 1, the average wages of government and non-government employees, *wage_public* and *wage_private* respectively, are added to the model as separate terms, so that wage disparity effects can be captured. 
+  * Economics: in place of the incentive variable *wage_avg* captured in Model 1, the average wages of government and non-government employees, *wage_public* and *wage_private* respectively, are put into the model as separate terms. This allows us draw out and quantify the prosperity of an average citizen in the private domain (via *wage_private*).
   
 INTERACTION TERMS
   
@@ -310,19 +308,66 @@ The distribution of public wages, *wage_public*, is HELLA NORMAL, so we will inc
 
 
 Our model takes the following form:  
-$$Crime = \beta_0 + \beta_1*Police + \beta_2*log(Avg Wages) + \beta_3*Ymale + \beta_4*Density + \beta_5*PublicWages + \beta_6*PrivateWages$$  
+$$Crime = \beta_0 + \beta_1*Police + \beta_3*Ymale + \beta_4*Density + \beta_5*PublicWages + \beta_6*PrivateWages$$  
 
 ```{r}
-Model2 <- lm(crime ~ police + log_wage_avg + ymale + density + wage_public + wage_private, data = data)
+Model2 <- lm(crime ~ police + ymale + density + wage_public + wage_private, data = data)
+
+summary(Model2)
 
 ```
 
 
-  
-  
-
-
 #### Assumptions
+```{r}
+summary(Model2)$r.squared 
+
+(tolerance2 <- 1-summary(Model1)$r.squared)
+(VIF2 <- 1/tolerance2)
+
+bptest(Model2)
+
+
+#Diagnostic Plots
+layout <- par(mfrow=c(3,2))
+
+# Residuals vs Fitted Values
+plot(Model2, 1)
+
+# Scale-Location
+plot(Model1, 3)
+
+# Histogram of residuals
+hist(Model2$residuals, main = "Histogram of Residuals")
+# Normal Q-Q
+plot(Model2, 2)
+
+# Residuals vs Leverage
+plot(Model2, 5)
+
+# Cook's Distance
+plot(Model2, 4)
+
+par(layout)
+```
+
+We now investigate our outliers:
+
+```{r}
+Model2$residuals[51]
+data[51, ]
+```
+
+
+
+
+
+
+
+
+
+
+
 
 ## Model 3:  
 #### Specification  
@@ -337,14 +382,34 @@ This model expands upon the operationalization of deterrents to crime by adding 
 
 # Summary of models
 ## Regression Table
+```{r, results = 'asis'}
+# Use heteroskedasticity-robust methods
+se.model1 = sqrt(diag(vcovHC(Model1)))
+se.model2 = sqrt(diag(vcovHC(Model2)))
+
+# Stargazer output
+stargazer(Model1, Model2, type = "latex", header = FALSE, 
+          title = "Linear Models Predicting Crime", 
+          se = list(se.model1, se.model2), 
+          star.cutoffs = c(0.5, 0.01, 0.001), 
+          omit.stat = "f")
+
+```
 
 ## Significance
-### Statistical Significance
+### Statistical Significance  
 
-### Practical Significance
+
+### Practical Significance  
+INTERESTING THAT DENSITY SEEMS MOST SIGNIFICANT  
+POLICY-WISE, PERHAPS THE "CARROT" AND THE "STICK" *BOTH* DON'T MATTER. DON'T NEED TO MANIPULATE THINGS THAT SO CLEARLY TARGET CRIME. INSTEAD, FOCUS ON ZONING AND OTHER GEOGRAPHIC INFLUENCES. BONUS EFFECT OF MAKING THE CITIZENS FEEL LESS CONTROLLED/WATCHED/BIG-BROTHER-ED.
 
 
 
 # Causality & Omitted Variables
 
 # Conclusion
+
+\newpage
+# Works Cited
+Hlavac, Marek (2015). stargazer: Well-Formatted Regression and Summary Statistics Tables. R package version 5.2. http://CRAN.R-project.org/package=stargazer
