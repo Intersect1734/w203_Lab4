@@ -1,5 +1,5 @@
 ---
-title: 'Lab 4: INFORMATIVE TITLE'
+title: 'Lab 4: Carrots, Sticks, and Crime'
 author: "Krissy Gianforte & Dan Kent"
 date: "18 December 2017"
 output:
@@ -200,7 +200,7 @@ Model1 <- lm(log_crime ~ police + log_wage_avg, data = data)
 
 We proceed with testing assumptions to understand the robustness of our created model.
 
-First we identify if our data fits our model assumptions.  As our model uses a "carrot" and "stick" approach we investigate the former and later variables.  We identify that police presense ("stick") is appropriate for our model, but our "carrot" is potentially of concern as we are taking the "average of averages" in this context.  We are presented with no other data and consequently will proceed with the understanding that this may limit the full interpretability of our model.
+First we identify if our data fits our model assumptions.  As our model uses a "carrot" and "stick" approach we investigate the former and later variables.  We identify that police presence ("stick") is appropriate for our model, but our "carrot" is potentially of concern as we are taking the "average of averages" in this context.  We are presented with no other data and consequently will proceed with the understanding that this may limit the full interpretability of our model.
 
 We are able to pass the first assumption, MLR.1 as we have developed our model into a linear form as described supra.
 
@@ -220,21 +220,21 @@ Our tolerance value is also not below 0.1, which therefore does not indicate any
 ```
 Finally, our VIF is not above four, let alone 10, indicating that we do not have any issues of multicolinearity.
 
-The next assumption we examin is that of the Zero Conditional Mean, MLR.4.  We first identify if there are any omitted variables - as we have a limited dataset with respect to different variables, we are caught in a bit of a bind.  Theoretically there are many more "carrot" and "stick" variables that we could use in our model, however some of these are not available to us and we want to reserve others for our second model.  We will proceed investigating MLR.4 with caution based on our conclusions here.
+The next assumption we examine is that of the Zero Conditional Mean, MLR.4.  We first identify if there are any omitted variables - as we have a limited dataset with respect to different variables, we are caught in a bit of a bind.  Theoretically there are many more "carrot" and "stick" variables that we could use in our model, however some of these are not available to us and we want to reserve others for our second model.  We will proceed investigating MLR.4 with caution based on our conclusions here.
 
 We proceed to create a residuals versus fitted values plot:
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 1)
 ```
-From our plot, we observe a spline curve that is fairly flat. We consequently will assume Zero Conditional Mean and continue with the analysis.
+From our plot, we observe a spline curve that is fairly flat.  We notice some curvature towards the postiive side of the plot, but observe that this could be explained by the limited number of datapoints in this region.  We consequently will assume Zero Conditional Mean and continue with the analysis.
 
-Our next tested assumption is MLR.5, the assumption of homoskedacity.  From the above residuals versus fitted, we can observe that the band has a roughly uniform thickness, with the exception of points 51 and 84.  We will proceed cautiously with further analysis of homoskedasticity.
+Our next tested assumption is MLR.5, the assumption of homoskedacity.  From the above residuals versus fitted, we can observe that the band has a roughly uniform thickness, with the exception of three points in the lower right-hand corner of the plot.  We will proceed cautiously with further analysis of homoskedasticity.
 
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 3)
 ```
 
-Our scale-location plot also depicts a relatively horizontal band of points, with the exception of point 84 on the right.
+Our scale-location plot also depicts a relatively horizontal band of points, except, as seen in the residuals vs fitted plot, of a handful of data points in the far right region of the plot.  Of note, data point 51 appears to be the most egregious abberation.  With this in mind, we continue our analysis cautiously.  
 
 ```{r}
 bptest(Model1)
@@ -251,11 +251,13 @@ hist(Model1$residuals)
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 2)
 ```
-Our QQ test shows that the majority of points falls on the diagonal line with some departure at the lower extreme - again in points 51 and 84.  
+Our QQ test shows that the majority of points falls on the diagonal line with some departure at the upper and lower extremes.  
 
 ```{r}
 length(data$crime)
+
 ```
+As our sample is approaching 100, we can asymptotic properties of OLS, including the central limit theorem to help with our testing of MLR.6.
 
 Finally, we use a Residuals vs Leverage plot to search for points with disproportionate leverage. We see two such points: again points 51 and 84. 
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
@@ -272,7 +274,9 @@ head(sort(data$wage_avg, decreasing = TRUE))
 Point 51 has the absolute lowest crime rate in our data set: 0.00553. The next lowest value of *crime* is 0.0106 - nearly twice the value of point 51. The low crime rate does seem to be a plausible value, even if it is extreme. Without further knowledge of county 51, we cannot remove Point 51 as a true outlier or coding error. We must retain it in the model.  
 Point 84 the third lowest crime rate (0.0109). Interestingly, county 84 has the absolute highest average wages. (495.96). This again is a plausible value, if extreme. We leave Point 84 in the model.  
 
-These two data points do create some concerns around leverage and outliers, However, as our sample approaches 100 data points, we can rely on asymptotic properties of OLS including the central limit theorem.  
+These two data points do create some concerns around leverage and outliers, However, as our sample approaches 100 data points, as mentioned above, we can rely on asymptotic properties of OLS including the central limit theorem.  
+
+
 
 ## Model 2:  
 #### Specification  
