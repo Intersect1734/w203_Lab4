@@ -12,7 +12,7 @@ subtitle: 'w203: Statistics for Data Science, Section 2'
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE, warning = FALSE, message=FALSE}
 library(car)
 library(sandwich)
 library(stargazer)
@@ -161,7 +161,7 @@ wagevars = c("wagefed", "wagesta", "wageloc", "wagecon", "wagetuc", "wagetrd", "
 data$wage_avg = apply(data[,wagevars], 1, mean)
 
 #Histogram of each variable in the model
-layout <- par(mfrow=c(2,2))
+par(mfrow=c(2,2))
 
 hist(data$crime, main = "Histogram of Crime", xlab = "Crime rate (per capita)", breaks = seq(0, 0.10, 0.005))
 
@@ -173,21 +173,26 @@ hist(data$wage_avg, main = "Histogram of Average Wages", xlab = "Weekly wages", 
 data$log_wage_avg <- log(data$wage_avg)
 hist(data$log_wage_avg, main = "Histogram of Avg Wages, log transform", xlab = "log(Weekly wages)", breaks = seq(5.4, 6.5, 0.1))
 
-par(layout)
-
 ```  
 
-The dependent variable of interest, *crime*, has a somewhat skewed distribution, with many counties on the lower end of the spectrum and a tail extending into higher rates. Still, the skew is not extreme, so we will proceed with the *crime* variable untransformed.  
+The dependent variable of interest, *crime*, has a somewhat skewed distribution, with many counties on the lower end of the spectrum and a tail extending into higher rates. Transforming this variable using a logarithm would likely result in more normal data. The transformed log(*crime*) would still be understandable; a change in log(*crime*) would simply represent a percent change. With that in mind, we transform the output variable and create a new *log_crime* variable.  
+
+```{r}
+# Create log crime variable
+data$log_crime = log(data$crime)
+
+hist(data$log_crime, main = "Histogram of Crime, log transform", xlab = "log(Crime rate(per capita))")
+```
 
 The *police* variable is approximately normally distributed, except for a single value near 0.010 (1 policeman for every 10 citizens). We will incorporate the variable into the model without a transformation, given its nearly-normal distribution.
 
 As expected, the histogram of *log(wage_avg)* appears more normal than the untransformed plot; a logarithm helps reduce the impact of high-earners. A log transform of pay also helps with intuitive interpretation of the model (an X% increase in wages is quite easy to understand). With both of those advantages, we select the *log(wage_avg)* variable for the model.  
 
 Our model takes the following form:  
-$$Crime = \beta_0 + \beta_1*Police + \beta_2*log(Avg Wages)$$  
+$$log(Crime) = \beta_0 + \beta_1*Police + \beta_2*log(Avg Wages)$$  
 
 ```{r}
-Model1 <- lm(crime ~ police + log_wage_avg, data = data)
+Model1 <- lm(log_crime ~ police + log_wage_avg, data = data)
 ```
 
 
@@ -213,7 +218,7 @@ Our tolerance value is also not below 0.1, which therefore does not indicate any
 ```{r}
 (VIF1 <- 1/tolerance1)
 ```
-Finally, our VIF is not above four, yet alone 10, indicating that we do not have any issues of multicolinearity.
+Finally, our VIF is not above four, let alone 10, indicating that we do not have any issues of multicolinearity.
 
 The next assumption we examin is that of the Zero Conditional Mean, MLR.4.  We first identify if there are any omitted variables - as we have a limited dataset with respect to different variables, we are caught in a bit of a bind.  Theoretically there are many more "carrot" and "stick" variables that we could use in our model, however some of these are not available to us and we want to reserve others for our second model.  We will proceed investigating MLR.4 with caution based on our conclusions here.
 
@@ -221,60 +226,61 @@ We proceed to create a residuals versus fitted values plot:
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 1)
 ```
-From our plot, we observe a spline curve that is curved on the right.  This normally indicates a violation of Zero Conditional Mean; however, we observe that there are very few data points on the right of the of the graph which could contribute to this curve.  We consequently will assume Zero Conditional Mean, but proceed further with caution.
+From our plot, we observe a spline curve that is fairly flat. We consequently will assume Zero Conditional Mean and continue with the analysis.
 
-Our next tested assumption is MLR.5, the assumption of homoskedacity.  From the above residuals versus fitted, we can observe that the band has a roughly uniform thickness, with the exception of a handful of points on the right.  We will proceed cautiously with further analysis of homoskedasticity.
+Our next tested assumption is MLR.5, the assumption of homoskedacity.  From the above residuals versus fitted, we can observe that the band has a roughly uniform thickness, with the exception of points 51 and 84.  We will proceed cautiously with further analysis of homoskedasticity.
 
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 3)
 ```
 
-Our scale-location plot also depicts a relatively horizontal band of points, with the exception of a handful on the right.  We will continue to proceed cautiously.
+Our scale-location plot also depicts a relatively horizontal band of points, with the exception of point 84 on the right.
 
 ```{r}
 bptest(Model1)
 ```
-From our Breusch-Pagan test, we observe that we must reject the null hypothesis of homoskedasticity as we have a p-value of less than .05, indicating that there is evidence supporting heteroskedasticity.  
-
-KRISSY - DO YOU SEE THIS AS AN ISSUE?
+From our Breusch-Pagan test, we must reject the null hypothesis of homoskedasticity as we have a p-value of less than .05, indicating that there is evidence supporting heteroskedasticity. With that in mind, we will use heteroskedasticity-robuts methods of analysis going forward. (See the "Summary of Models" section.)  
 
 We proced with the analysis of MLR.6, The normality of errors.  
 
-We first investigate the residual plot:
+We first investigate the residual plot, which is roughly normally distributed:
 
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 hist(Model1$residuals)
 ```
-We observe some positive skew, but it is roughly normally distributed.
-
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 2)
 ```
-Our QQ test shows that the majority of points falls on the diagonal line with some departure along the extremes.  
+Our QQ test shows that the majority of points falls on the diagonal line with some departure at the lower extreme - again in points 51 and 84.  
 
 ```{r}
 length(data$crime)
 ```
 
-As our sample approaches 100 data points, we can rely on asymptotic properties of OLS including the central limit theorem.  
-
-We now investigate our outliers:
-
+Finally, we use a Residuals vs Leverage plot to search for points with disproportionate leverage. We see two such points: again points 51 and 84. 
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 5)
 ```
 
+We investigate these two points, to see whether a coding issue could be responsible for their effect on the model.  
+```{r}
+data[c(51, 84),]
 
+head(sort(data$crime))
+head(sort(data$wage_avg, decreasing = TRUE))
+```  
+Point 51 has the absolute lowest crime rate in our data set: 0.00553. The next lowest value of *crime* is 0.0106 - nearly twice the value of point 51. The low crime rate does seem to be a plausible value, even if it is extreme. Without further knowledge of county 51, we cannot remove Point 51 as a true outlier or coding error. We must retain it in the model.  
+Point 84 the third lowest crime rate (0.0109). Interestingly, county 84 has the absolute highest average wages. (495.96). This again is a plausible value, if extreme. We leave Point 84 in the model.  
+
+These two data points do create some concerns around leverage and outliers, However, as our sample approaches 100 data points, we can rely on asymptotic properties of OLS including the central limit theorem.  
 
 ## Model 2:  
 #### Specification  
 This model adds a bit of complexity to the first, in order to better capture the full range of variables that affect crime. We incorporate interaction terms and covariates where they might affect the model. In particular, we include at least one variable from each category discussed above, in order to capture other factors in society and control for them:  
 
-  * Demographics: operationalized by the number of young males in the county, *ymale*  
+  * Demographics: operationalized by the number of young males in the county, *ymale*, and the percentage of minority citizens, *pctmin*    
   * Geography: operationalized by population density, *density*  
   * Economics: in place of the incentive variable *wage_avg* captured in Model 1, the average wages of government and non-government employees, *wage_public* and *wage_private* respectively, are put into the model as separate terms. This allows us draw out and quantify the prosperity of an average citizen in the private domain (via *wage_private*).
-  
-INTERACTION TERMS
   
 Histograms of each of these variables allow us to identify skew and make any required transformations.   
 
@@ -282,39 +288,42 @@ Histograms of each of these variables allow us to identify skew and make any req
 # Create the variables for public & private wages
 pubwages = c("wagefed", "wagesta", "wageloc")
 privwages = c("wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg")
+allwages = c(pubwages, privwages)
 data$wage_public = apply(data[,pubwages], 1, mean)
 data$wage_private = apply(data[,privwages], 1, mean)
 
+data$wage_max = apply(data[,allwages], 1, max)
+data$wage_min = apply(data[,allwages], 1, min)
+data$wage_range <- (data$wage_max - data$wage_min) 
+
 #Histogram of each NEW variable
-layout <- par(mfrow=c(3,2))
+par(mfrow=c(3,2))
 
-hist(data$ymale, main = "Histogram of Young Male Population", xlab = "Percentage of Young Males (15 to 24)", breaks = seq(0, 0.27, 0.01))
+hist(data$ymale, main = "Histogram of Young Male Population", xlab = "Percentage of Young Males (15 to 24)", breaks = seq(0, 0.27, 0.01))  
 
-hist(data$density, main = "Histogram of Density", xlab = "Density (people per sq mile)", breaks = seq(0,10,0.5))
+hist(data$pctmin, main = "Histogram of Minority Population", xlab = "Percentage of Minorities", breaks = seq(0,75,5))  
 
 hist(data$wage_public, main = "Histogram of Public Wages", xlab = "Weekly wages", breaks = seq(250, 500, 25))
 
 hist(data$wage_private, main = "Histogram of Private Wages", xlab = "Weekly wages", breaks = seq(200, 600, 25))
 
-par(layout)
+hist(data$density, main = "Histogram of Density", xlab = "Density (people per sq mile)", breaks = seq(0,10,0.5))
+
 
 ```  
 
-The three independent variables, *police*, *ymale*, and *density*, all have nearly normal distributions with a few values sitting far down the right tail. *Density* in particular seems to have a cutoff value at zero; the distribution would perhaps appear more normal if it were allowed to extend leftward. Of course density cannot go below zero, so the cutoff is appropriate.  
+The two independent variables *ymale* and *density* have nearly normal distributions with a few values sitting far down the right tail. *Density* in particular seems to have a cutoff value at zero; the distribution would perhaps appear more normal if it were allowed to extend leftward. Of course density cannot go below zero, so the cutoff is appropriate.  
 
-ARE THERE OTHER TRANSFORMS WE CAN DO? SQUARES? SOMETHING MORE CREATIVE THAN LOG?
+The *pctmin* variable has a somewhat uniform distribution between 0 and 50%.  
 
-The distribution of public wages, *wage_public*, is HELLA NORMAL, so we will include it in the model as-is. For the sake of comparability, we will also include the *wage_private* variable as-is. This keeps both in terms of dollar change (as opposed to percentage changes).
+The distribution of public wages, *wage_public*, is quite normal, so we will include it in the model as-is. For the sake of comparability, we will also include the *wage_private* variable as-is. This keeps both in terms of dollar change (as opposed to percentage changes).
 
 
 Our model takes the following form:  
-$$Crime = \beta_0 + \beta_1*Police + \beta_3*Ymale + \beta_4*Density + \beta_5*PublicWages + \beta_6*PrivateWages$$  
+$$log(Crime) = \beta_0 + \beta_1*Police + \beta_2*Ymale + \beta_3*PctMinority + \beta_4*Density + \beta_5*PublicWages + \beta_6*PrivateWages$$  
 
 ```{r}
-Model2 <- lm(crime ~ police + ymale + density + wage_public + wage_private, data = data)
-
-summary(Model2)
-
+Model2 <- lm(log_crime ~ police + ymale + pctmin + density + wage_public + wage_private, data = data)
 ```
 
 
@@ -329,7 +338,7 @@ bptest(Model2)
 
 
 #Diagnostic Plots
-layout <- par(mfrow=c(3,2))
+par(mfrow=c(3,2))
 
 # Residuals vs Fitted Values
 plot(Model2, 1)
@@ -345,25 +354,9 @@ plot(Model2, 2)
 # Residuals vs Leverage
 plot(Model2, 5)
 
-# Cook's Distance
-plot(Model2, 4)
-
-par(layout)
 ```
 
-We now investigate our outliers:
-
-```{r}
-Model2$residuals[51]
-data[51, ]
-```
-
-
-
-
-
-
-
+ITS POINTS 51 AND 84 AGAIN CAUSING ISSUES. WE ALREADY KNEW THAT. IN TERMS OF CHANGES FROM MODEL 1, MODEL 2 HAS AN INPROVED R^2^ VALUE AND GENERALLY CLEANER DIAGNOSTICS.
 
 
 
@@ -371,7 +364,35 @@ data[51, ]
 
 ## Model 3:  
 #### Specification  
-This model expands upon the operationalization of deterrents to crime by adding the *avgsen* variable. We do not add this variable with confidence, since we do not fully understand its derivation. (Does it represent sentence length averaged over convictions? Or over all citizens - even those with no crimes? Is it normalized for the severity of the crime, or are sentences served for murder and public intoxication weighted equally?)
+This model expands upon the operationalization of deterrents to crime by adding the *avgsen* variable. Note that we did not add this variable into earlier models because of a lack of confidence in its derivation. (Does it represent sentence length averaged over convictions? Or over all citizens - even those with no crimes? Is it normalized for the severity of the crime, or are sentences served for murder and public intoxication weighted equally?)  
+Additionally, this model incorporates the *urban* indicator variable as an interaction term with the *ymale* variable, to differentiate the activities of young males in different areas.  
+
+A histogram of the *avgsen* variable allows us to identify skew and make any required transformations.   
+
+```{r}
+par(mfrow=c(1,2))
+
+#Histogram of average sentence & percent minority
+hist(data$avgsen, main = "Histogram of Average Sentence", xlab = "Average Sentence (days)")  
+``` 
+
+We should consider transforming this variable, due to its skew.   
+
+```{r}
+#Histogram of average sentence, log transform
+hist(log(data$avgsen), main = "Histogram of Avg Sen, log transform", xlab = "log(Average Sentence")  
+
+``` 
+
+
+Our model takes the following form:  
+$$log(Crime) = \beta_0 + \beta_1*Police + \beta_2*Ymale + \beta_3*PctMinority + \beta_4*Density + \\ \beta_5*PublicWages + \beta_6*PrivateWages + \beta_7*Urban + \beta_8*Urban*ymale + \\ \beta_9*log(AvgSentence)$$  
+
+```{r}
+Model3 <- lm(log_crime ~ police + ymale + pctmin + density + wage_public + wage_private + urban + urban*ymale + log(avgsen), data = data)
+
+summary(Model3)
+```
 
 #### Assumptions
 
@@ -386,15 +407,20 @@ This model expands upon the operationalization of deterrents to crime by adding 
 # Use heteroskedasticity-robust methods
 se.model1 = sqrt(diag(vcovHC(Model1)))
 se.model2 = sqrt(diag(vcovHC(Model2)))
+se.model3 = sqrt(diag(vcovHC(Model3)))
 
 # Stargazer output
-stargazer(Model1, Model2, type = "latex", header = FALSE, 
+stargazer(Model1, Model2, Model3, type = "latex", header = FALSE, 
           title = "Linear Models Predicting Crime", 
-          se = list(se.model1, se.model2), 
+          se = list(se.model1, se.model2, se.model3), 
           star.cutoffs = c(0.5, 0.01, 0.001), 
           omit.stat = "f")
 
-```
+c(AIC(Model1), AIC(Model2), AIC(Model3))
+
+```  
+
+NICE! MODEL2 HAS LOWEST AIC --- MOST PARSIMONIOUS BEST FIT =D
 
 ## Significance
 ### Statistical Significance  
@@ -402,7 +428,8 @@ stargazer(Model1, Model2, type = "latex", header = FALSE,
 
 ### Practical Significance  
 INTERESTING THAT DENSITY SEEMS MOST SIGNIFICANT  
-POLICY-WISE, PERHAPS THE "CARROT" AND THE "STICK" *BOTH* DON'T MATTER. DON'T NEED TO MANIPULATE THINGS THAT SO CLEARLY TARGET CRIME. INSTEAD, FOCUS ON ZONING AND OTHER GEOGRAPHIC INFLUENCES. BONUS EFFECT OF MAKING THE CITIZENS FEEL LESS CONTROLLED/WATCHED/BIG-BROTHER-ED.
+POLICY-WISE, PERHAPS THE "CARROT" AND THE "STICK" *BOTH* DON'T MATTER. DON'T NEED TO MANIPULATE THINGS THAT SO CLEARLY TARGET CRIME. INSTEAD, FOCUS ON ZONING AND OTHER GEOGRAPHIC INFLUENCES. BONUS EFFECT OF MAKING THE CITIZENS FEEL LESS CONTROLLED/WATCHED/BIG-BROTHER-ED.  
+ALSO, PUBLIC WAGES ARE MORE OF AN ISSUE THAN PRIVATE WAGES. GOVERNMENT SHOULD NOT TAKE HIGHER PAY?  
 
 
 
