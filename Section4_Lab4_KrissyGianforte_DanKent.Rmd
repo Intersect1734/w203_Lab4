@@ -280,7 +280,7 @@ These two data points do create some concerns around leverage and outliers, Howe
 
 ## Model 2:  
 #### Specification  
-This model adds a bit of complexity to the first, in order to better capture the full range of variables that affect crime. We incorporate interaction terms and covariates where they might affect the model. In particular, we include at least one variable from each category discussed above, in order to capture other factors in society and control for them:  
+This model adds a bit of complexity to the first, still within the "carrot and stick" paradigm, in order to better capture the full range of variables that affect crime. We incorporate interaction terms and covariates where they might affect the model. In particular, we include at least one variable from each category discussed supra, in order to capture other factors in society and control for them:  
 
   * Demographics: operationalized by the number of young males in the county, *ymale*, and the percentage of minority citizens, *pctmin*    
   * Geography: operationalized by population density, *density*  
@@ -332,6 +332,7 @@ Model2 <- lm(log_crime ~ police + ymale + pctmin + density + wage_public + wage_
 
 
 #### Assumptions
+Following the same assumption test protocol we conducted in the above section for Model 1, we investigate any violations of our assumptions.
 ```{r}
 summary(Model2)$r.squared 
 
@@ -360,11 +361,7 @@ plot(Model2, 5)
 
 ```
 
-ITS POINTS 51 AND 84 AGAIN CAUSING ISSUES. WE ALREADY KNEW THAT. IN TERMS OF CHANGES FROM MODEL 1, MODEL 2 HAS AN INPROVED R^2^ VALUE AND GENERALLY CLEANER DIAGNOSTICS.
-
-
-
-
+From our data outputs, we identify some heteroskedasticity, as we observed above.  In our QQ plot analysis, we note general conformity to the diagional line, with the exception of points 51, 84, and 25.  Moving further in our analysis, we again identify that points 51 and 84, while legitimate data, exert high leverage and influence.  We reckon that we are able to cautiously accept all assumptions for our classical linear multiple regression model.
 
 ## Model 3:  
 #### Specification  
