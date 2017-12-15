@@ -450,9 +450,6 @@ c(AIC(Model1), AIC(Model2), AIC(Model3))
 ### Statistical Significance  
 From an analysis of our three models, we observe an increase across the models in parsimony as illustrated by both our adjusted R2 and AIC.  This informs us that our successive models add to the robustness of our "carrot and stick" model paradigm.
 
-```{r}
-summary(Model3)
-```
 In our first model, we observe the only variable that has statistical signficance at the .05 level and demonstrates that an effect is present is that of *log_wage_avg*, illustrated by a very low p-value.  In other words, our other variable, *police* does not present any staistically signficant effect on our response variable, crime.  
 
 In our second model, we see that a number of our variables are statistically signficant at the .05 level - *ymale*, *pctmin*, *density*, and *wage_public*, demonstrating that there is an effect present on our response variable, crime, with these variables.
@@ -461,17 +458,26 @@ Our final model, Model 3, depicts a simlar picture ot our second model, where th
 
 
 ### Practical Significance  
-In our first model, we observe a small 
+In our first model, we observe a small practical signifance with the *log_wage_avg*, indicating that if we increase wages by one percent, we expect observed crimes commited per person to increase by 1.653 units.   
 
-INTERESTING THAT DENSITY SEEMS MOST SIGNIFICANT  
-POLICY-WISE, PERHAPS THE "CARROT" AND THE "STICK" *BOTH* DON'T MATTER. DON'T NEED TO MANIPULATE THINGS THAT SO CLEARLY TARGET CRIME. INSTEAD, FOCUS ON ZONING AND OTHER GEOGRAPHIC INFLUENCES. BONUS EFFECT OF MAKING THE CITIZENS FEEL LESS CONTROLLED/WATCHED/BIG-BROTHER-ED.  
-ALSO, PUBLIC WAGES ARE MORE OF AN ISSUE THAN PRIVATE WAGES. GOVERNMENT SHOULD NOT TAKE HIGHER PAY?  
+Hey Krissy -  the units in the dependent variable are wonky (very decimal!) and consequently I'm not 100% sure what I'm saying below is correct - can you double check i.e. increase in percentage points of young adult males per county reflected by increase in 4.672 crimes per person.  Seems high to me, but I'm having trouble making sense of it.  
 
+Our second model depicts that every increase the percentage of young adult males in each county is reflected by an increase of 4.672 crimes per person.  This is deduced from the *ymale* variable.  *density* also is associated with an increase in crimes; for every additional unit per square mile, we observe an incrase in crimes committed per person of .212.  The practical signficance of the other statistically signficant variables, *pctmin* and *wage_public* have an effect of .009 and .003, respectively, illustrating very small practical signficance, even though these data are statistically significant.
+
+Finally, in model 3, we observe nearly identical outcomes as our second model, stated supra.  This model depicts that for every increase in the percentage of young adult males in a county, crimes increase 4.23 per person, a reduction versus our previous model.  The practical signficance of *density* increases slightly - each additional unit per square mile is associated with a .264 increase in crimes committed per person.  As stated in model 2, the practical signficance of the other statistically signficant variables, *pctmin* and *wage_public* have a very small effect (actually identicial effect size to model 2) of .009 and .003, respectively, illustrating very small practical signficance, again, even though these data are statistically significant.
+
+While not statistically signficant, across all three models, *police* demonstrated signficant reductions in our response variable, crimes committed per person, -33.852, -41.625, and -34.094 across models 1, 2, and 3, respectively.  While we cannot claim statistically signficant relationships, due to the size of the association, we believe further research is warranted.  
 
 
 # Causality & Omitted Variables
 
+Causality Model 1: 
+
+This is an interesting finding, as it appears to point to the conclusion that counties with higher average wages would expereince more crime.  However, we are unable to draw this direct causation argument because of a number of confounding issues - for instance, is there more crime reported versus unreported crime in the less well-off counties because there are more resources to report such incidents?
+
 # Conclusion
+
+As our model and analyses are associative as opposed causal, without further study, ______.  
 
 \newpage
 # Works Cited
