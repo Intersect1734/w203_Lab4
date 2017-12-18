@@ -41,6 +41,7 @@ We begin our Exploratory Data Analysis by inspecting all of the variables. We id
 
 ```{r}
 colnames(full_data)
+summary(full_data)
 ```
 From our high-level summary statistics and descriptions from the code book, we observe that some variables are categorical-ordinal (county, year), coded (west, central, urban), proportions or probabilities (probarr, probconv, probsen, pctmin, mix, ymale), averages (crime, avgsen, wagecon, wagetuc, wagetrd, wagefir, wageser, wagemfg, wagefed, wagesta, wageloc), and some are rates (crime, police, density, tax). However, all variables are represented as numeric data in the data frame; categorical and coded entries are represented as numeric 0's and 1's.  
 
@@ -60,7 +61,7 @@ We exclude a few of the remaining 24 variables from our analysis, as they do not
 
   * year - The year variable is ignored in our analysis as all the observations have the same value, 88, which the researchers understand as 1988 - perhaps the year of the data.  As all of the values are the same across all observations, we ignore this variable.  
   * probarr, probconv, probsen - The variables involving probability are calculations in and of themselves; the code book describes these quantities as 'probability' values. The quotation marks in the definitions indicate that these are hypothetical, calculated values rather than truly observed values. For the purposes of this investigation, we wish to use measured, raw data. Therefore, these probability variables will be excluded from analysis.  
-  * mix - the mix variable, described in the code book as "ratio of face to face/all other crimes" will be excluded as we believe this data to be associated with the response/dependent variable, crime, as opposed to a predictor/independent variable.  
+  * mix - the mix variable, described in the code book as "ratio of face to face/all other crimes" will be excluded as we believe this data to be associated with the response/dependent variable, *crime*, as opposed to a predictor/independent variable.  
   * county - The variable *county* is described as the "county identifier". This identification was used above to understand that each row of data represents a different county. Past that, though, this variable provides little value; the ordinal number associated with each observation does not provide any useful information about the associated data.  
 
 From this first pairing down of variables, we are left with the response variable *crime* and 19 independent variables.  
@@ -85,7 +86,7 @@ The "Demographics" category includes multiple variables that describe the cultur
 ##Geography
 The "Geography" category includes all variables that describe the land, location, and housing of a county. There are a number of such variables in this data set, and their expression varies from normalized values (such as *density*, expressed in people per sq mile) to binary indicators (such as the *urban*, *west*, and *central* indicators). The geographic variables are:  
   1. *density* - people per sq. mile  
-  2. *west* - indicator, =1 if in western part of the state
+  2. *west* - indicator, =1 if in western part of the state  
   3. *central* - indicator, =1 if in central part of the state  
   4. *urban* - indicator, =1 if in Standard Metropolitan Statistical Area  
   
@@ -100,7 +101,7 @@ data[data$west == 1 & data$central == 1, c("west", "central")]
 Without knowing the specific state in question here, it is difficult to understand the meaning of the *west* and *central* geographical impact. However, distance from a major city is a well-known and universally understandable metric. Therefore, our analysis focuses on the *urban* indicator variable.  
 
 ## Economics
-Finally, to wages and taxes are included in the "Economics" category. In our analysis, these variables are meant to capture the prosperity of a county, and provide an operationalization for quality-of-life. The specific variables are:  
+Finally, wages and taxes are included in the "Economics" category. In our analysis, these variables are meant to capture the prosperity of a county, and provide an operationalization for quality-of-life. The specific variables are:  
   1. *wagecon* - weekly wage, construction  
   2. *wagetuc* - weekly wage, transportation, utilities, communications  
   3. *wagetrd* - weekly wage, retail trace  
@@ -125,6 +126,8 @@ Note that without raw data we cannot weight these average calculations properly,
 This analysis presents three different models to describe how crime is affected by various factors. The first model is quite simple, and uses just two variables to operationalize positive ("carrot") and negative ("stick") control of crime. This model is an over-simplification, but such a simple picture often proves useful in presenting ideas to large groups of campaign supporters and investors.  
 The second model is a more accurate depiction of the complex ecosystem around crime. It incorporates related and entangled variables where relevant, and thereby improves on the predictive capabilities of the first model. It also controls for demographic and geographic factors.  
 Finally, we present a third model with all related factors included. This model is provided largely as a baseline, and helps to demonstrate the usefulness of our second proposed model.    
+
+For each model, we assess the Multiple Linear Regression assumptions MLR.1-6 to ensure validity. In all cases, we are able to pass the first assumption, MLR.1, since we define the models into a linear form. The veracity of the second assumption, MLR.2, i.e. random sampling, IID, is difficult to discern based upon the data and additional information we have at our disposal.  As we did not conduct the data collection and further have limited information about the variables, we proceed cautiously in this analysis with the assumption that our data meets MLR.2.  
 
 
 ## Model 1: 
@@ -160,7 +163,7 @@ hist(data$log_wage_avg, main = "Histogram of Wages, log transform",
 
 The dependent variable of interest, *crime*, has a somewhat skewed distribution, with many counties on the lower end of the spectrum and a tail extending into higher rates. Transforming this variable using a logarithm would likely result in more normal data. The transformed log(*crime*) would still be understandable; a change in log(*crime*) would simply represent a percent change. With that in mind, we transform the output variable and create a new *log_crime* variable.  
 
-```{r, fig.height=3, fig.width=3}
+```{r, fig.height=3, fig.width=5, fig.align = 'center'}
 # Create log crime variable
 data$log_crime = log(data$crime)
 
@@ -173,7 +176,7 @@ The *police* variable is approximately normally distributed, except for a single
 As expected, the histogram of log(*wage_avg*) appears more normal than the untransformed plot; a logarithm helps reduce the impact of high-earners. A log transform of pay also helps with intuitive interpretation of the model (an X% increase in wages is quite easy to understand). With both of those advantages, we select the log(*wage_avg*) variable for the model.  
 
 Our model takes the following form:  
-$$log(Crime) = \beta_0 + \beta_1*Police + \beta_2*log(Avg Wages)$$  
+$$log(Crime) = \beta_0 + \beta_1 \cdot Police + \beta_2 \cdot log(Avg Wages)$$  
 
 ```{r}
 Model1 <- lm(log_crime ~ police + log_wage_avg, data = data)
@@ -184,13 +187,9 @@ Model1 <- lm(log_crime ~ police + log_wage_avg, data = data)
 
 We proceed with testing assumptions to understand the robustness of our created model.
 
-First we identify if our data fits our model assumptions.  As our model uses a "carrot" and "stick" approach we investigate the former and later variables.  We identify that police presence ("stick") is appropriate for our model, but our "carrot" is potentially of concern as we are taking the "average of averages" in this context. (See the "Economics" section above.) We are presented with no other data and consequently will proceed with the understanding that this may limit the full interpretability of our model.
+First we identify if the data we have available fits our model theory. As our model uses a "carrot" and "stick" approach we investigate the former and later variables.  We identify that police presence ("stick") is appropriate for our model, but our "carrot" is potentially of concern as we are taking the "average of averages" in this context. (See more detailed discussion in the the "Economics" section above.) We are presented with no other data and consequently will proceed with the understanding that this may limit the full interpretability of our model.  
 
-We are able to pass the first assumption, MLR.1 as we have developed our model into a linear form as described supra.
-
-The veracity of the second assumption, MLR.2, i.e. random sampling, IID, is difficult to discern based upon the data and additional information we have at our disposal.  As we did not conduct the data collection and further have limited information about the variables, we proceed cautiously with the assumption that our model meets MLR.2.
-
-The third assumption, MLR.3, is the assumption of no perfect colinearity.  As we have multiple variables, we will look at the R^2^ value, tolerance, and VIF.  
+The first two Multiple Linear Regression assumptions, MLR.1-2, are discussed above for all models. Here we begin with the the third assumption, MLR.3, the assumption of no perfect colinearity.  As we have multiple variables, we will look at the R^2^ value, tolerance, and VIF.  
 ```{r}
 summary(Model1)$r.squared 
 ```
@@ -225,17 +224,18 @@ bptest(Model1)
 ```
 From our Breusch-Pagan test, we must reject the null hypothesis of homoskedasticity as we have a p-value of less than .05, indicating that there is evidence supporting heteroskedasticity. With that in mind, we will use heteroskedasticity-robust methods of analysis going forward. (See the "Summary of Models" section.)  
 
-We proceed with the analysis of MLR.6, The normality of errors, by investigating the residual plot, which is roughly normally distributed:
+We proceed with the analysis of MLR.6, the normality of errors, by investigating the residual plot, which is roughly normally distributed:
 
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 hist(Model1$residuals)
 ```
+Our QQ test shows that the majority of points fall on the diagonal line with some departure at the upper and lower extremes. Again, points 51 and 84 are the most obvious exceptions to the fit.   
+
 ```{r,echo=FALSE, out.width='.49\\linewidth', fig.width=5, fig.height=3,fig.show='hold',fig.align='center'}
 plot(Model1, 2)
 ```
-Our QQ test shows that the majority of points fall on the diagonal line with some departure at the upper and lower extremes. Again, points 51 and 84 are the most obvious exceptions to the fit.    
-
-Since our sample is approaching 100 data points, we can asymptotic properties of OLS, including the central limit theorem to help with our testing of MLR.6.  
+ 
+Since our sample is approaching 100 data points, we can rely on asymptotic properties of OLS, including the central limit theorem, to help with our testing of MLR.6.  
 ```{r}
 length(data$crime)
 ```
@@ -256,6 +256,14 @@ Point 51 has the absolute lowest crime rate in our data set: 0.00553. The next l
 Point 84 has the third lowest crime rate in the data set: 0.0109. Interestingly, county 84 has the absolute highest average wages: 495.96. This again is a plausible value, if extreme. We leave point 84 in the model.  
 
 These two data points do create some concerns around leverage and outliers, However, as our sample approaches 100 data points, as mentioned above, we can rely on asymptotic properties of OLS including the central limit theorem.  
+
+Having satisfied the six Multiple Linear Regression model assumptions, we expect the Model 1 coefficients to be the best linear unbiased estimators (BLUE). That is, the coefficient values are accurate in expectation ($E(\beta_j) = \beta_j$) and have small variance as compared to other linear unbiased estimators. In fact, our large sample size (n>30) and asymptotic properties allow us to make this claim based only on the first four assumptions.  
+  * (MLR.1) linear model specification  
+  * (MLR.2) random sampling  
+  * (MLR.3) no perfect multicollinearity  
+  * (MLR.4) zero conditional mean  
+  * (MLR.5) homoskedasticity - *addressed by heteroskedasticity-robust methods*  
+  * (MLR.6) normality of residuals
 
 
 ## Model 2:  
@@ -310,7 +318,7 @@ The distribution of public wages, *wage_public*, is quite normal, so we will inc
 
 Our model takes the following form:  
 $$\begin{split}
-log(Crime) &= \beta_0 + \beta_1*Police + \beta_2*Ymale + \beta_3*PctMinority \\ &+ \beta_4*Density + \beta_5*PublicWages + \beta_6*PrivateWages
+log(Crime) &= \beta_0 + \beta_1 \cdot Police + \beta_2 \cdot Ymale + \beta_3 \cdot PctMinority \\ &+ \beta_4 \cdot Density + \beta_5 \cdot PublicWages + \beta_6 \cdot PrivateWages
 \end{split}$$  
 
 ```{r}
@@ -321,7 +329,7 @@ Model2 <- lm(log_crime ~ police + ymale + pctmin + density + wage_public + wage_
 
 #### Assumptions
 Following the same assumption test protocol we conducted in the above section for Model 1, we investigate any violations of our assumptions.
-```{r}
+```{r, fig.height = 3, fig.width = 5, fig.align = 'center'}
 summary(Model2)$r.squared 
 
 (tolerance2 <- 1-summary(Model2)$r.squared)
@@ -331,7 +339,6 @@ bptest(Model2)
 
 
 #Diagnostic Plots
-par(mfrow=c(3,2))
 
 # Residuals vs Fitted Values
 plot(Model2, 1)
@@ -349,7 +356,9 @@ plot(Model2, 5)
 
 ```
 
-From our data outputs, we identify some heteroskedasticity, as we observed above and consequently will switch to robust standard errors (see infra).  In our QQ plot analysis, we note general conformity to the diagonal line, with the exception of points 51, 84, and 25.  Moving further in our analysis, we again identify that points 51 and 84, while legitimate data, exert high leverage and influence.  We reckon that we are able to cautiously accept all assumptions for our classical linear multiple regression model.
+From our data outputs, we identify some heteroskedasticity, as we observed above and consequently will switch to robust standard errors (see infra).  In our QQ plot analysis, we note general conformity to the diagonal line, with the exception of points 51, 84, and 25.  Moving further in our analysis, we again identify that points 51 and 84, while legitimate data, exert high leverage and influence.  
+
+As with Model 1, we need only satisfy the first four MLR assumptions to know that the OLS estimated coefficients are unbiased. Still, we reckon that we are able to cautiously accept *all* assumptions for Model 2 (using Heteroskedasticity-robust methods to address MLR.5.  
 
 ## Model 3:  
 #### Specification  
@@ -358,14 +367,14 @@ Additionally, this model incorporates the *urban* indicator variable as an inter
 
 A histogram of the *avgsen* variable allows us to identify skew and make any required transformations.   
 
-```{r, fig.height = 3, fig.width = 5}
+```{r, fig.height = 3, fig.width = 5, fig.align = 'center'}
 #Histogram of average sentence & percent minority
 hist(data$avgsen, main = "Histogram of Average Sentence", xlab = "Average Sentence (days)")  
 ``` 
 
 We proceed in transforming this variable, due to its skew.   
 
-```{r, fig.height=3, fig.width = 5}
+```{r, fig.height=3, fig.width = 5, fig.align = 'center'}
 #Histogram of average sentence, log transform
 hist(log(data$avgsen), main = "Histogram of Avg Sen, log transform", 
      xlab = "log(Average Sentence")  
@@ -375,7 +384,7 @@ hist(log(data$avgsen), main = "Histogram of Avg Sen, log transform",
 
 Our model takes the following form:  
 $$\begin{split}
-log(Crime) &= \beta_0 + \beta_1*Police + \beta_2*Ymale + \beta_3*PctMinority \\ &+ \beta_4*Density + \beta_5*PublicWages + \beta_6*PrivateWages + \beta_7*Urban \\ &+ \beta_8*Urban*ymale + \beta_9*log(AvgSentence)
+log(Crime) &= \beta_0 + \beta_1 \cdot Police + \beta_2 \cdot Ymale + \beta_3 \cdot PctMinority \\ &+ \beta_4 \cdot Density + \beta_5 \cdot PublicWages + \beta_6 \cdot PrivateWages + \beta_7 \cdot Urban \\ &+ \beta_8 \cdot Urban*ymale + \beta_9 \cdot log(AvgSentence)
 \end{split}$$  
 
 ```{r}
@@ -386,7 +395,7 @@ Model3 <- lm(log_crime ~ police + ymale + pctmin + density +
 
 #### Assumptions
 
-```{r}
+```{r, fig.height = 3, fig.width = 5, fig.align = 'center'}
 summary(Model3)$r.squared 
 
 (tolerance3 <- 1-summary(Model3)$r.squared)
@@ -396,7 +405,6 @@ bptest(Model3)
 
 
 #Diagnostic Plots
-par(mfrow=c(3,2))
 
 # Residuals vs Fitted Values
 plot(Model3, 1)
@@ -414,7 +422,9 @@ plot(Model3, 2)
 plot(Model3, 5)
 ```
 
-From our data outputs from Model 3, we identify some heteroskedasticity, as we observed above in Models 1 and 2 and similarly switch to robust standard errors (see infra).  Our scale-location plot calls attention to points 51, 25, and potentially 84.  In our QQ plot analysis, we note general conformity to the diagonal line, with the exception of points 51, 84, and 25, as observed in Model 2.  We identify that points 51 and 84, while legitimate data, exert high leverage and influence, as does point 23, a new finding for Model 3.  We cautiously accept all assumptions for our classical linear multiple regression model number 3.
+From our data outputs from Model 3, we identify some heteroskedasticity, as we observed above in Models 1 and 2 and similarly switch to robust standard errors (see infra).  Our scale-location plot calls attention to points 51, 25, and potentially 84.  In our QQ plot analysis, we note general conformity to the diagonal line, with the exception of points 51, 84, and 25, as observed in Model 2.  We identify that points 51 and 84, while legitimate data, exert high leverage and influence, as does point 23, a new finding for Model 3.  
+
+The first four MLR assumptions are again satisfied for Model 3, so we know that the OLS estimated coefficients are unbiased and efficient. However, the presence of high-leverage and high-influence points 51, 84, and 25 is concerning. Model 3 is likely not the best choice of specification; the regression table below will help assess further.  
 
 
 # Summary of models
@@ -439,7 +449,7 @@ c(AIC(Model1), AIC(Model2), AIC(Model3))
 
 ## Significance
 ### Statistical Significance  
-From an analysis of our three models, we observe an increase in R^2^ with each successive model. However, the R^2^ increase in Model 3 over Model 2 is not actually an improvement, as indicated by the Adjusted R^2^ and AIC comparison. This informs us that Model 2 offers the best balance between parsimony and best-fit.  
+From an analysis of our three models, we observe an increase in R^2^ with each successive model. However, the R^2^ increase in Model 3 over Model 2 is not actually an improvement, as indicated by the Adjusted R^2^ and AIC comparison. (AIC values are 143.22, 89.98, and 93.76 respectively; a lower AIC indicates a better model.) This informs us that Model 2 offers the best balance between parsimony and best-fit.  
 
 In our first model, we observe the only variable that has statistical significance at the .05 level and demonstrates that an effect is present is that of *log_wage_avg*, illustrated by a very low p-value.  In other words, our other variable, *police* does not present any statistically significant effect on our response variable, *crime*.  
 
@@ -449,12 +459,12 @@ Our final model, Model 3, depicts a similar picture to our second model, where t
 
 
 ### Practical Significance  
-In our first model, we observe a small practical significance with the *log_wage_avg*: if wages are increased by one percent and all other factors are held equal, we expect observed crimes committed per person to increase by 1.653 percent.   
+In our first model, we observe some practical significance with the *log_wage_avg*: the coefficient is 1.653. This value is too large to interpret using the "percent change" understanding of logarithmic specification (this works for changes less than about 20%).   
 
-Our second model depicts that every increase the percentage of young adult males in each county is reflected by a 4.672% increase in crimes per person. This is deduced from the *ymale* variable. *Density* also is associated with an increase in crimes; for every additional person per square mile, we observe a 0.212% increase in crimes committed per person.  The other statistically significant variables, *pctmin* and *wage_public*, have an effect of .009 and .003, respectively, so there is little practical significance, even though these data are statistically significant.  
+Our second model depicts that every unit increase in the proportion of young adult males in a county is reflected by a 4.672 times increase in log of crimes per person. This is deduced from the *ymale* variable. *Density* also is associated with an increase in crimes; for every additional person per square mile, we observe a 21.2% increase in crimes committed per person. (This coefficient is small enough to use the percentage change interpretation of the logarithm.) The other statistically significant variables, *pctmin* and *wage_public*, have an effect of .009 and .003, respectively, so there is little practical significance, even though these data are statistically significant.  
 
-Finally, in Model 3, we observe nearly identical outcomes as our second model, stated supra.  This model depicts that for every unit increase in the percentage of young adult males in a county, crimes increase 4.243%, a reduction in effect from our previous model. This reduction is potentially due to the inclusion of the *urban* x *ymale* interaction term; some of the effect of young males may be accounted for by the effects of a city.  
-The practical significance of *density* increases slightly - each additional person per square mile is associated with a 0.264% increase in crimes committed per person.  As stated in Model 2, the practical significance of the other statistically significant variables, *pctmin* and *wage_public*, is very small.  
+Finally, in Model 3, we observe nearly identical outcomes as our second model, stated supra.  This model depicts that for every unit increase in the percentage of young adult males in a county, the log of crimes increases by 4.243, a reduction in effect from our previous model. This reduction is potentially due to the inclusion of the *urban* x *ymale* interaction term; some of the effect of young males may be accounted for by the effects of a city.  
+The practical significance of *density* increases slightly - each additional person per square mile is associated with a 26.4% increase in crimes committed per person.  As stated in Model 2, the practical significance of the other statistically significant variables, *pctmin* and *wage_public*, is very small.  
 
 While not statistically significant, across all three models police presence was associated with a strong reduction in our response variable, crimes committed per person. The coefficient of the *police* term was -33.852, -41.625, and -34.094 across Models 1, 2, and 3, respectively.  While we cannot claim statistically significant relationships, due to the size of the association, we believe further research is warranted.  
 
@@ -464,8 +474,9 @@ While not statistically significant, across all three models police presence was
 The data available to us presented signficant barriers with respect to identifying causality as our models were limited solely to the supplied data set.  This resulted in us drawing conclusions and building models based on data collected by a third party, who's varacity and trustworthiness we cannot confirm, let alone of that of the data.  Further, we do not know if there were additional confounding elements to their collection of the data and whether that had an impact on the responses provided. 
 
 What we can say is that there is a high degree of liklihood that there are other variables, omitted in the data set and consequently our modeling, that could have an impact on our response variable *crime*, the number of crimes commited by person. 
-Our thesis was to test our model developed around that of the "carrot and stick," based on the data we collected.  From our outcomes, our model fell short of our expectations.  We believe that it is in the spirit of statistics and research that further modeling and hypothesizing should take place in the construct of such model dialogue.  For example, one study [^1] identified a number of distal and proximate causes to create a number of models, such as that of the influence of parent-child attachment and delinquent peer model, or the economic stress, influence of parent-child attachment, and delinquent peer model.    
-[^1]: http://www.bocsar.nsw.gov.au/Documents/CJB/cjb54.pdf
+Our thesis was to test our model developed around that of the "carrot and stick," based on the data we collected.  From our outcomes, our model fell short of our expectations.  We believe that it is in the spirit of statistics and research that further modeling and hypothesizing should take place in the construct of such model dialogue.  For example, one study [^2] identified a number of distal and proximate causes to create a number of models, such as that of the influence of parent-child attachment and delinquent peer model, or the economic stress, influence of parent-child attachment, and delinquent peer model.   
+
+[^2]: http://www.bocsar.nsw.gov.au/Documents/CJB/cjb54.pdf
 
 Omitted variables transcend a specific category and it is expected that variables could be both improved as well as added to our dataset.  
 
