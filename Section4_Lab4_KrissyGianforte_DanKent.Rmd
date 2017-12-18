@@ -74,17 +74,20 @@ colnames(data)
 We have grouped these variables into categories based upon their type of effect in our models: Authority, Demographics, Geography, and Economics.  Moving forward, we will discuss variables based upon these groupings.
 
 ##Authority
-Government-controlled deterrents to crime are included in the "Authority" category. This includes things meant to prevent crime from occurring (such as police presence) as well as things that increase the penalty to crime (such as prison sentence length). From the code book, we identify two variables in this category:  
+Government-controlled deterrents to crime are included in the "Authority" category. This includes concepts meant to prevent crime from occurring (such as police presence) as well as things that increase the penalty to crime (such as prison sentence length). From the code book, we identify two variables in this category:  
+
   1. *police* - police per capita  
   2. *avgsen* - average sentence, in days
 
 ##Demographics
-The "Demographics" category includes multiple variables that describe the cultural and personal characteristics of the county's population. In general, these variables are expressed as proportions of the population. From the code book, we identify 2 variables in this category:  
+The "Demographics" category includes multiple variables that describe the cultural and personal characteristics of the county's population. In general, these variables are expressed as proportions of the population. From the code book, we identify two variables in this category:  
+
   1. *ymale* - proportion of county males between the ages of 15 and 24  
   2. *pctmin* - proportion that is minority or non-white  
 
 ##Geography
 The "Geography" category includes all variables that describe the land, location, and housing of a county. There are a number of such variables in this data set, and their expression varies from normalized values (such as *density*, expressed in people per sq mile) to binary indicators (such as the *urban*, *west*, and *central* indicators). The geographic variables are:  
+
   1. *density* - people per sq. mile  
   2. *west* - indicator, =1 if in western part of the state  
   3. *central* - indicator, =1 if in central part of the state  
@@ -124,7 +127,9 @@ Note that without raw data we cannot weight these average calculations properly,
 
 # Model Building  
 This analysis presents three different models to describe how crime is affected by various factors. The first model is quite simple, and uses just two variables to operationalize positive ("carrot") and negative ("stick") control of crime. This model is an over-simplification, but such a simple picture often proves useful in presenting ideas to large groups of campaign supporters and investors.  
+
 The second model is a more accurate depiction of the complex ecosystem around crime. It incorporates related and entangled variables where relevant, and thereby improves on the predictive capabilities of the first model. It also controls for demographic and geographic factors.  
+
 Finally, we present a third model with all related factors included. This model is provided largely as a baseline, and helps to demonstrate the usefulness of our second proposed model.    
 
 For each model, we assess the Multiple Linear Regression assumptions MLR.1-6 to ensure validity. In all cases, we are able to pass the first assumption, MLR.1, since we define the models into a linear form. The veracity of the second assumption, MLR.2, i.e. random sampling, IID, is difficult to discern based upon the data and additional information we have at our disposal.  As we did not conduct the data collection and further have limited information about the variables, we proceed cautiously in this analysis with the assumption that our data meets MLR.2.  
@@ -171,7 +176,7 @@ hist(data$log_crime, main = "Histogram of Crime, log transform",
      xlab = "log(Crime rate(per capita))")
 ```
 
-The *police* variable is approximately normally distributed, except for a single value near 0.010 (1 policeman for every 10 citizens). We will incorporate the variable into the model without a transformation, given its nearly-normal distribution.
+The *police* variable is approximately normally distributed, except for a single value near 0.010 (1 police officer for every 10 citizens). We will incorporate the variable into the model without a transformation, given its nearly-normal distribution.
 
 As expected, the histogram of log(*wage_avg*) appears more normal than the untransformed plot; a logarithm helps reduce the impact of high-earners. A log transform of pay also helps with intuitive interpretation of the model (an X% increase in wages is quite easy to understand). With both of those advantages, we select the log(*wage_avg*) variable for the model.  
 
@@ -464,6 +469,7 @@ In our first model, we observe some practical significance with the *log_wage_av
 Our second model depicts that every unit increase in the proportion of young adult males in a county is reflected by a 4.672 times increase in log of crimes per person. This is deduced from the *ymale* variable. *Density* also is associated with an increase in crimes; for every additional person per square mile, we observe a 21.2% increase in crimes committed per person. (This coefficient is small enough to use the percentage change interpretation of the logarithm.) The other statistically significant variables, *pctmin* and *wage_public*, have an effect of .009 and .003, respectively, so there is little practical significance, even though these data are statistically significant.  
 
 Finally, in Model 3, we observe nearly identical outcomes as our second model, stated supra.  This model depicts that for every unit increase in the percentage of young adult males in a county, the log of crimes increases by 4.243, a reduction in effect from our previous model. This reduction is potentially due to the inclusion of the *urban* x *ymale* interaction term; some of the effect of young males may be accounted for by the effects of a city.  
+
 The practical significance of *density* increases slightly - each additional person per square mile is associated with a 26.4% increase in crimes committed per person.  As stated in Model 2, the practical significance of the other statistically significant variables, *pctmin* and *wage_public*, is very small.  
 
 While not statistically significant, across all three models police presence was associated with a strong reduction in our response variable, crimes committed per person. The coefficient of the *police* term was -33.852, -41.625, and -34.094 across Models 1, 2, and 3, respectively.  While we cannot claim statistically significant relationships, due to the size of the association, we believe further research is warranted.  
